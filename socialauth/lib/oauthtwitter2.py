@@ -1,10 +1,9 @@
+import json
 import time
 from urllib2 import Request, urlopen
 
 import oauth1 as oauth
 from twitter import User
-
-from django.utils import simplejson as json
 
 TWITTER_URL = 'twitter.com'
 REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
