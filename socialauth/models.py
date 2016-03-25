@@ -6,6 +6,10 @@ User = get_user_model()
 
 class AuthMeta(models.Model):
     """Metadata for Authentication"""
+
+    class Meta:
+        app_label = 'socialauth'
+
     def __unicode__(self):
         return '%s - %s' % (self.user, self.provider)
 
@@ -17,6 +21,10 @@ class AuthMeta(models.Model):
 
 class OpenidProfile(models.Model):
     """A class associating an User to a Openid"""
+
+    class Meta:
+        app_label = 'socialauth'
+
     openid_key = models.CharField(max_length=200, unique=True, db_index=True)
 
     user = models.ForeignKey(User, related_name='openid_profiles')
@@ -36,6 +44,10 @@ class LinkedInUserProfile(models.Model):
     """
     For users who login via Linkedin.
     """
+
+    class Meta:
+        app_label = 'socialauth'
+
     linkedin_uid = models.CharField(max_length=50,
                                     unique=True,
                                     db_index=True)
@@ -60,6 +72,10 @@ class TwitterUserProfile(models.Model):
     """
     For users who login via Twitter.
     """
+
+    class Meta:
+        app_label = 'socialauth'
+
     screen_name = models.CharField(max_length=200,
                                    unique=True,
                                    db_index=True)
@@ -82,6 +98,10 @@ class FacebookUserProfile(models.Model):
     """
     For users who login via Facebook.
     """
+
+    class Meta:
+        app_label = 'socialauth'
+
     facebook_uid = models.CharField(max_length=20,
                                     unique=True,
                                     db_index=True)
@@ -99,6 +119,10 @@ class FacebookUserProfile(models.Model):
 
 
 class GithubUserProfile(models.Model):
+
+    class Meta:
+        app_label = 'socialauth'
+
     user = models.ForeignKey(User)
     access_token = models.CharField(max_length=100, blank=True, null=True, editable=False)
 
@@ -107,6 +131,10 @@ class GithubUserProfile(models.Model):
 
 
 class FoursquareUserProfile(models.Model):
+
+    class Meta:
+        app_label = 'socialauth'
+
     user = models.ForeignKey(User)
     access_token = models.CharField(max_length=255, blank=True, null=True, editable=False)
 
