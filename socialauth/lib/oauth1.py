@@ -22,13 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+from __future__ import absolute_import
 import cgi
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import time
 import random
-import urlparse
+import six.moves.urllib.parse
 import hmac
 import binascii
+import six
+from six.moves import range
 
 
 VERSION = '1.0' # Hi Blaine!
@@ -47,11 +50,11 @@ def build_authenticate_header(realm=''):
 
 def escape(s):
     """Escape a URL including any /."""
-    return urllib.quote(s, safe='~')
+    return six.moves.urllib.parse.quote(s, safe='~')
 
 def _utf8_str(s):
     """Convert unicode to utf-8."""
-    if isinstance(s, unicode):
+    if isinstance(s, six.text_type):
         return s.encode("utf-8")
     else:
         return str(s)
@@ -115,13 +118,13 @@ class OAuthToken(object):
     def get_callback_url(self):
         if self.callback and self.verifier:
             # Append the oauth_verifier.
-            parts = urlparse.urlparse(self.callback)
+            parts = six.moves.urllib.parse.urlparse(self.callback)
             scheme, netloc, path, params, query, fragment = parts[:6]
             if query:
                 query = '%s&oauth_verifier=%s' % (query, self.verifier)
             else:
                 query = 'oauth_verifier=%s' % self.verifier
-            return urlparse.urlunparse((scheme, netloc, path, params,
+            return six.moves.urllib.parse.urlunparse((scheme, netloc, path, params,
                 query, fragment))
         return self.callback
 
@@ -132,7 +135,7 @@ class OAuthToken(object):
         }
         if self.callback_confirmed is not None:
             data['oauth_callback_confirmed'] = self.callback_confirmed
-        return urllib.urlencode(data)
+        return six.moves.urllib.parse.urlencode(data)
  
     def from_string(s):
         """ Returns a token from something like:
@@ -193,7 +196,7 @@ class OAuthRequest(object):
     def get_nonoauth_parameters(self):
         """Get any non-OAuth parameters."""
         parameters = {}
-        for k, v in self.parameters.iteritems():
+        for k, v in six.iteritems(self.parameters):
             # Ignore oauth parameters.
             if k.find('oauth_') < 0:
                 parameters[k] = v
@@ -204,7 +207,7 @@ class OAuthRequest(object):
         auth_header = 'OAuth realm="%s"' % realm
         # Add the oauth parameters.
         if self.parameters:
-            for k, v in self.parameters.iteritems():
+            for k, v in six.iteritems(self.parameters):
                 if k[:6] == 'oauth_':
                     auth_header += ', %s="%s"' % (k, escape(str(v)))
         return {'Authorization': auth_header}
@@ -212,7 +215,7 @@ class OAuthRequest(object):
     def to_postdata(self):
         """Serialize as post data for a POST request."""
         return '&'.join(['%s=%s' % (escape(str(k)), escape(str(v))) \
-            for k, v in self.parameters.iteritems()])
+            for k, v in six.iteritems(self.parameters)])
 
     def to_url(self):
         """Serialize as a URL for a GET request."""
@@ -240,7 +243,7 @@ class OAuthRequest(object):
 
     def get_normalized_http_url(self):
         """Parses the URL and rebuilds it to be scheme://host/path."""
-        parts = urlparse.urlparse(self.http_url)
+        parts = six.moves.urllib.parse.urlparse(self.http_url)
         scheme, netloc, path = parts[:3]
         # Exclude default port numbers.
         if scheme == 'http' and netloc[-3:] == ':80':
@@ -288,7 +291,7 @@ class OAuthRequest(object):
             parameters.update(query_params)
 
         # URL parameters.
-        param_str = urlparse.urlparse(http_url)[4] # query
+        param_str = six.moves.urllib.parse.urlparse(http_url)[4] # query
         url_params = OAuthRequest._split_url_string(param_str)
         parameters.update(url_params)
 
@@ -354,15 +357,15 @@ class OAuthRequest(object):
             # Split key-value.
             param_parts = param.split('=', 1)
             # Remove quotes and unescape the value.
-            params[param_parts[0]] = urllib.unquote(param_parts[1].strip('\"'))
+            params[param_parts[0]] = six.moves.urllib.parse.unquote(param_parts[1].strip('\"'))
         return params
     _split_header = staticmethod(_split_header)
 
     def _split_url_string(param_str):
         """Turn URL string into parameters."""
         parameters = cgi.parse_qs(param_str, keep_blank_values=False)
-        for k, v in parameters.iteritems():
-            parameters[k] = urllib.unquote(v[0])
+        for k, v in six.iteritems(parameters):
+            parameters[k] = six.moves.urllib.parse.unquote(v[0])
         return parameters
     _split_url_string = staticmethod(_split_url_string)
 
@@ -467,7 +470,7 @@ class OAuthServer(object):
             # Get the signature method object.
             signature_method = self.signature_methods[signature_method]
         except:
-            signature_method_names = ', '.join(self.signature_methods.keys())
+            signature_method_names = ', '.join(list(self.signature_methods.keys()))
             raise OAuthError('Signature method %s not supported try one of the '
                 'following: %s' % (signature_method, signature_method_names))
 

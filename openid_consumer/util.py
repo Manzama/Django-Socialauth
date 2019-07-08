@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import openid
 if openid.__version__ < '2.1.0':
     from openid.sreg import SRegResponse
@@ -18,7 +19,7 @@ from openid.yadis import xri
 import time, base64, hashlib
 
 from django.conf import settings
-from models import Association, Nonce
+from .models import Association, Nonce
 
 class OpenID:
     def __init__(self, openid, issued,

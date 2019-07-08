@@ -9,9 +9,10 @@ Date Release: 11/23/2009
 Enjoy!
 """
 
+from __future__ import absolute_import
 import hashlib
-import urllib2
-import httplib
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+import six.moves.http_client
 
 import time
 
@@ -33,7 +34,7 @@ class LinkedIn():
         self.api_key = api_key
         self.secret_key = secret_key
 
-        self.connection = httplib.HTTPSConnection(self.LI_SERVER)
+        self.connection = six.moves.http_client.HTTPSConnection(self.LI_SERVER)
         self.consumer = oauth.OAuthConsumer(api_key, secret_key)
         self.sig_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
 

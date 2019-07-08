@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from socialauth.models import AuthMeta, OpenidProfile, TwitterUserProfile, \
 FacebookUserProfile, LinkedInUserProfile, GithubUserProfile, FoursquareUserProfile
 

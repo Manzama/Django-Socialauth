@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from oauth import oauth
 from django.conf import settings
-import httplib
+import six.moves.http_client
 
 FOURSQUARE_AUTHENTICATION_URL = 'https://foursquare.com/oauth2/authenticate'
 FOURSQUARE_ACCESS_TOKEN_URL = 'https://foursquare.com/oauth2/access_token'
@@ -9,7 +10,7 @@ FOURSQUARE_CONSUMER_SECRET = getattr(settings, 'FOURSQUARE_CONSUMER_SECRET')
 REGISTERED_REDIRECT_URI = getattr(settings, 'FOURSQUARE_REGISTERED_REDIRECT_URI')
 
 def get_http_connection():
-    return httplib.HTTPSConnection('foursquare.com')
+    return six.moves.http_client.HTTPSConnection('foursquare.com')
 
 def get_response_body(oauth_request):
     http_conn = get_http_connection()

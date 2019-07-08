@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.conf import settings
 import facebook
 
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 from socialauth.lib import oauthtwitter2 as oauthtwitter
 from socialauth.models import OpenidProfile as UserAssociation, \
 TwitterUserProfile, FacebookUserProfile, LinkedInUserProfile, AuthMeta, GithubUserProfile, FoursquareUserProfile
@@ -12,6 +13,7 @@ from socialauth.lib.linkedin import *
 
 import random
 from cgi import parse_qs
+from six.moves import range
 
 TWITTER_CONSUMER_KEY = getattr(settings, 'TWITTER_CONSUMER_KEY', '')
 TWITTER_CONSUMER_SECRET = getattr(settings, 'TWITTER_CONSUMER_SECRET', '')
@@ -78,7 +80,7 @@ class OpenIdBackend:
                 nickname =  ''.join(
                                     [random
                                      .choice('abcdefghijklmnopqrstuvwxyz')
-                                     for i in xrange(10)])
+                                     for i in range(10)])
             
             name_count = (User.objects
                           .filter(username__startswith=nickname)
@@ -280,12 +282,12 @@ class FacebookBackend:
             params["code"] = request.GET.get('code', '')
 
             url = ("https://graph.facebook.com/oauth/access_token?"
-                   + urllib.urlencode(params))
+                   + six.moves.urllib.parse.urlencode(params))
             from cgi import parse_qs
-            userdata = urllib.urlopen(url).read()
+            userdata = six.moves.urllib.request.urlopen(url).read()
             res_parse_qs = parse_qs(userdata)
             # Could be a bot query
-            if not res_parse_qs.has_key('access_token'):
+            if 'access_token' not in res_parse_qs:
                 return None
                 
             access_token = res_parse_qs['access_token'][-1]

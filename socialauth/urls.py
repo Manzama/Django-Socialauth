@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from django.conf.urls.defaults import *
 from openid_consumer.views import complete, signout
 from django.views.generic.base import TemplateView

@@ -1,5 +1,7 @@
+from __future__ import absolute_import
 from django.db import models
 from django.contrib.auth import get_user_model
+import six
 
 User = get_user_model()
 
@@ -34,10 +36,10 @@ class OpenidProfile(models.Model):
     nickname = models.CharField(max_length=100)
 
     def __unicode__(self):
-        return unicode(self.openid_key)
+        return six.text_type(self.openid_key)
 
     def __repr__(self):
-        return unicode(self.openid_key)
+        return six.text_type(self.openid_key)
 
 
 class LinkedInUserProfile(models.Model):

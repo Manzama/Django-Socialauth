@@ -1,8 +1,9 @@
 # Create your views here.
+from __future__ import absolute_import
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.contrib.comments.models import Comment
-from models import Post
+from .models import Post
 from django.template import RequestContext
 
 def comment_posted(request):

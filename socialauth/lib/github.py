@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from django.conf import settings 
 from oauth.oauth import OAuthConsumer, OAuthRequest 
-import httplib
+import six.moves.http_client
 
 GITHUB_CLIENT_ID = getattr(settings, 'GITHUB_CLIENT_ID')
 GITHUB_CLIENT_SECRET = getattr(settings, 'GITHUB_CLIENT_SECRET')
@@ -8,7 +9,7 @@ GITHUB_AUTHORIZE_URL = 'https://github.com/login/oauth/authorize'
 GITHUB_ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token'
 
 def get_response_from_url(to_url):
-    conn = httplib.HTTPSConnection('github.com')
+    conn = six.moves.http_client.HTTPSConnection('github.com')
     conn.request('GET', to_url)
     return conn.getresponse().read()
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from selenium import selenium
 import unittest
 from django.contrib.auth.models import User

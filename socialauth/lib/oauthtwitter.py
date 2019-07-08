@@ -10,11 +10,12 @@ Requires:
   oauth
 '''
 
+from __future__ import absolute_import
 __author__ = "Hameedullah Khan <hameed@hameedkhan.net>"
 __version__ = "0.1"
 
 
-from twitter import Api, User
+from .twitter import Api, User
 try:
     import json as simplejson
 except:

@@ -16,6 +16,8 @@
 
 '''A library that provides a python interface to the Twitter API'''
 
+from __future__ import absolute_import
+import six
 __author__ = 'dewitt@google.com'
 __version__ = '0.6-devel'
 
@@ -32,9 +34,9 @@ import sys
 import tempfile
 import textwrap
 import time
-import urllib
-import urllib2
-import urlparse
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+import six.moves.urllib.parse
 
 try:
   from hashlib import md5
@@ -256,7 +258,7 @@ class Status(object):
       A human readable string representing the posting time
     '''
     fudge = 1.25
-    delta  = long(self.now) - long(self.created_at_in_seconds)
+    delta  = int(self.now) - int(self.created_at_in_seconds)
 
     if delta < (1 * fudge):
       return 'about a second ago'
@@ -1432,7 +1434,7 @@ class Api(object):
     '''
     try:
       if id:
-        long(id)
+        int(id)
     except:
       raise TwitterError("id must be an long integer")
     url = 'http://twitter.com/statuses/show/%s.json' % id
@@ -1455,7 +1457,7 @@ class Api(object):
     '''
     try:
       if id:
-        long(id)
+        int(id)
     except:
       raise TwitterError("id must be an integer")
     url = 'http://twitter.com/statuses/destroy/%s.json' % id
@@ -1871,7 +1873,7 @@ class Api(object):
 
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
     # Break url into consituent parts
-    (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
+    (scheme, netloc, path, params, query, fragment) = six.moves.urllib.parse.urlparse(url)
 
     # Add any additional path elements to the path
     if path_elements:
@@ -1891,7 +1893,7 @@ class Api(object):
         query = extra_query
 
     # Return the rebuilt URL
-    return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+    return six.moves.urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment))
 
   def _InitializeRequestHeaders(self, request_headers):
     if request_headers:
@@ -1920,19 +1922,19 @@ class Api(object):
     if username and password:
       self._AddAuthorizationHeader(username, password)
       handler = self._urllib.HTTPBasicAuthHandler()
-      (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
+      (scheme, netloc, path, params, query, fragment) = six.moves.urllib.parse.urlparse(url)
       handler.add_password(Api._API_REALM, netloc, username, password)
       opener = self._urllib.build_opener(handler)
     else:
       opener = self._urllib.build_opener()
-    opener.addheaders = self._request_headers.items()
+    opener.addheaders = list(self._request_headers.items())
     return opener
 
   def _Encode(self, s):
     if self._input_encoding:
-      return unicode(s, self._input_encoding).encode('utf-8')
+      return six.text_type(s, self._input_encoding).encode('utf-8')
     else:
-      return unicode(s).encode('utf-8')
+      return six.text_type(s).encode('utf-8')
 
   def _EncodeParameters(self, parameters):
     '''Return a string in key=value&key=value form
@@ -1949,7 +1951,7 @@ class Api(object):
     if parameters is None:
       return None
     else:
-      return urllib.urlencode(dict([(k, self._Encode(v)) for k, v in parameters.items() if v is not None]))
+      return six.moves.urllib.parse.urlencode(dict([(k, self._Encode(v)) for k, v in parameters.items() if v is not None]))
 
   def _EncodePostData(self, post_data):
     '''Return a string in key=value&key=value form
@@ -1967,7 +1969,7 @@ class Api(object):
     if post_data is None:
       return None
     else:
-      return urllib.urlencode(dict([(k, self._Encode(v)) for k, v in post_data.items()]))
+      return six.moves.urllib.parse.urlencode(dict([(k, self._Encode(v)) for k, v in post_data.items()]))
 
   def _CheckForTwitterError(self, data):
     """Raises a TwitterError if twitter returns an error message.
@@ -2100,7 +2102,7 @@ class _FileCache(object):
              os.getenv('USERNAME') or \
              os.getlogin() or \
              'nobody'
-    except (IOError, OSError), e:
+    except (IOError, OSError) as e:
       return 'nobody'
 
   def _GetTmpCachePath(self):

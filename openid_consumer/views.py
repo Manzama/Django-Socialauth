@@ -1,14 +1,15 @@
+from __future__ import absolute_import
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response as render
 from django.template import RequestContext
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-import re, time, urllib
+import re, time, six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 
 import openid   
 if openid.__version__ < '2.0.0':
-    raise ImportError, 'You need python-openid 2.0.0 or newer'
+    raise ImportError('You need python-openid 2.0.0 or newer')
 elif openid.__version__ < '2.1.0':
     from openid.sreg import SRegRequest
 else: 
@@ -26,8 +27,8 @@ from openid.consumer.consumer import Consumer, \
 from openid.consumer.discover import DiscoveryFailure
 from openid.yadis import xri
 
-from util import OpenID, DjangoOpenIDStore, from_openid_response
-from middleware import OpenIDMiddleware
+from .util import OpenID, DjangoOpenIDStore, from_openid_response
+from .middleware import OpenIDMiddleware
 
 from django.utils.html import escape
 
@@ -77,7 +78,7 @@ def begin(request, redirect_to=None, on_failure=None, user_url=None,
             join = '&'
         else:
             join = '?'
-        redirect_to += join + urllib.urlencode({
+        redirect_to += join + six.moves.urllib.parse.urlencode({
             'next': request.GET['next']
         })
     if not user_url:
@@ -86,7 +87,7 @@ def begin(request, redirect_to=None, on_failure=None, user_url=None,
     if not user_url:
         request_path = request.path
         if request.GET.get('next'):
-            request_path += '?' + urllib.urlencode({
+            request_path += '?' + six.moves.urllib.parse.urlencode({
                 'next': request.GET['next']
             })
         
@@ -124,8 +125,7 @@ def begin(request, redirect_to=None, on_failure=None, user_url=None,
 
     if pape:
         if openid.__version__ <= '2.0.0' and openid.__version__ >= '2.1.0':
-            raise (ImportError, 
-                   'For pape extension you need python-openid 2.1.0 or newer')
+            raise ImportError
         p = PapeRequest()
         for parg in pape:
             if parg.lower().strip() == 'policy_list':
@@ -192,7 +192,7 @@ def complete(request, on_success=None, on_failure=None,
         assert False, "Bad openid status: %s" % openid_response.status
 
 def default_on_success(request, identity_url, openid_response):
-    if 'openids' not in request.session.keys():
+    if 'openids' not in list(request.session.keys()):
         request.session['openids'] = []
     
     # Eliminate any duplicates

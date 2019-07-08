@@ -1,5 +1,6 @@
 # Create your views here.
 
+from __future__ import absolute_import
 from django.contrib.auth.decorators import login_required
 from django.contrib.comments.views.comments import post_comment as old_post_comment
 

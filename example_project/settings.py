@@ -1,5 +1,6 @@
 # Django settings for socialauthdemo project.
 
+from __future__ import absolute_import
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

@@ -1,9 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import json
 import time
-from urllib2 import Request, urlopen
+from six.moves.urllib.request import Request, urlopen
 
-import oauth1 as oauth
-from twitter import User
+from . import oauth1 as oauth
+from .twitter import User
+from six.moves import input
 
 TWITTER_URL = 'twitter.com'
 REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
@@ -85,9 +88,9 @@ class TwitterOAuthClient(oauth.OAuthClient):
 def run_example():
 
     # setup
-    print '** OAuth Python Library Example **'
-    consumer_key = raw_input('Twitter Consumer Key:').strip()
-    consumer_secret = raw_input('Twitter Consumer Secret:').strip()
+    print('** OAuth Python Library Example **')
+    consumer_key = input('Twitter Consumer Key:').strip()
+    consumer_secret = input('Twitter Consumer Secret:').strip()
     callback = 'http://example.com/newaccounts/login/done/'
 
     client = TwitterOAuthClient(consumer_key, consumer_secret)
@@ -95,35 +98,35 @@ def run_example():
     pause()
 
     # get request token
-    print '* Obtain a request token ...'
+    print('* Obtain a request token ...')
     pause()
 
     token = client.fetch_request_token(callback)
-    print 'GOT'
-    print 'key: %s' % str(token.key)
-    print 'secret: %s' % str(token.secret)
+    print('GOT')
+    print('key: %s' % str(token.key))
+    print('secret: %s' % str(token.secret))
     pause()
 
-    print '* Authorize the request token ...'
+    print('* Authorize the request token ...')
     pause()
     # this will actually occur only on some callback
     url = client.authorize_token_url(token)
-    print 'GOT'
-    print url
+    print('GOT')
+    print(url)
     pause()
 
     # get access token
-    print '* Obtain an access token ...'
+    print('* Obtain an access token ...')
     pause()
 
     access_token = client.fetch_access_token(token)
-    print 'GOT'
-    print 'key: %s' % str(access_token.key)
-    print 'secret: %s' % str(access_token.secret)
+    print('GOT')
+    print('key: %s' % str(access_token.key))
+    print('secret: %s' % str(access_token.secret))
     pause()
 
     # access some protected resources
-    print '* Access protected resources ...'
+    print('* Access protected resources ...')
     pause()
     parameters = {
         'file': 'vacation.jpg',
@@ -138,19 +141,19 @@ def run_example():
         parameters=parameters
     )
     oauth_request.sign_request(client.signature_method, client.consumer, token)
-    print 'REQUEST (via post body)'
-    print 'parameters: %s' % str(oauth_request.parameters)
+    print('REQUEST (via post body)')
+    print('parameters: %s' % str(oauth_request.parameters))
     pause()
     params = client.access_resource(oauth_request)
-    print 'GOT'
-    print 'non-oauth parameters: %s' % params
+    print('GOT')
+    print('non-oauth parameters: %s' % params)
     pause()
 
 
 def pause():
-    print ''
+    print('')
     time.sleep(1)
 
 if __name__ == '__main__':
     run_example()
-    print 'Done.'
+    print('Done.')

@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import logging
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 from oauth import oauth
 
 from django.shortcuts import render_to_response
@@ -223,7 +224,7 @@ def facebook_login(request):
     params["client_id"] = FACEBOOK_APP_ID
     params["redirect_uri"] = request.build_absolute_uri(reverse("socialauth_facebook_login_done"))
 
-    url = "https://graph.facebook.com/oauth/authorize?"+urllib.urlencode(params)
+    url = "https://graph.facebook.com/oauth/authorize?"+six.moves.urllib.parse.urlencode(params)
 
     return HttpResponseRedirect(url)
 

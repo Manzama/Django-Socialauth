@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 from django.conf.urls.defaults import *
-from models import Post
+from .models import Post
 
 urlpatterns = patterns('',
     url(r'^(?P<post_id>\d+)$', 'example.views.post_detail'),

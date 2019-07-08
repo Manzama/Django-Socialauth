@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 from django.conf.urls.defaults import *
-from commentor.views import leave_comment
+from .commentor.views import leave_comment
 
 from django.contrib import admin
 admin.autodiscover()

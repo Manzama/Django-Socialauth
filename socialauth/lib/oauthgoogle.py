@@ -1,8 +1,10 @@
-import httplib
-import urllib2
-import urllib
+from __future__ import absolute_import
+from __future__ import print_function
+import six.moves.http_client
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import time
-import oauth2 as oauth
+from . import oauth2 as oauth
 
 from django.conf import settings
 
@@ -30,9 +32,9 @@ class GoogleOAuthClient(oauth.OAuthClient):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer, http_url=self.request_token_url, parameters=kwargs)
         oauth_request.sign_request(self.signature_method, self.consumer, None)
         params = oauth_request.parameters
-        data = urllib.urlencode(params)
+        data = six.moves.urllib.parse.urlencode(params)
         full_url='%s?%s'%(self.request_token_url, data)
-        response = urllib2.urlopen(full_url)
+        response = six.moves.urllib.request.urlopen(full_url)
         return oauth.OAuthToken.from_string(response.read())
     
     def authorize_token_url(self, token, callback_url=None,):
@@ -40,7 +42,7 @@ class GoogleOAuthClient(oauth.OAuthClient):
             callback_url = CALLBACK_URL
         oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, callback=callback_url, http_url=self.authorization_url,)
         params = oauth_request.parameters
-        data = urllib.urlencode(params)
+        data = six.moves.urllib.parse.urlencode(params)
         full_url='%s?%s'%(self.authorization_url, data)
         return full_url
         # response = urllib2.urlopen(full_url)
@@ -50,9 +52,9 @@ class GoogleOAuthClient(oauth.OAuthClient):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer, token=token, http_url=self.access_token_url)
         oauth_request.sign_request(self.signature_method, self.consumer, token)
         params = oauth_request.parameters
-        data = urllib.urlencode(params)
+        data = six.moves.urllib.parse.urlencode(params)
         full_url='%s?%s'%(self.access_token_url, data)
-        response = urllib2.urlopen(full_url)
+        response = six.moves.urllib.request.urlopen(full_url)
         return oauth.OAuthToken.from_string(response.read())
 
 
@@ -60,72 +62,72 @@ class GoogleOAuthClient(oauth.OAuthClient):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer, token=token, http_url=url, parameters=kwargs)
         oauth_request.sign_request(self.signature_method, self.consumer, token)
         params = oauth_request.parameters
-        data = urllib.urlencode(params)
+        data = six.moves.urllib.parse.urlencode(params)
         full_url='%s?%s'%(url, data)
         #print full_url
-        response = urllib2.urlopen(full_url)
+        response = six.moves.urllib.request.urlopen(full_url)
         return response
 
 def run_example():
 
     # setup
-    print '** OAuth Python Library Example **'
+    print('** OAuth Python Library Example **')
     client = GoogleOAuthClient(CONSUMER_KEY, CONSUMER_SECRET)
     pause()
 
     # get request token
-    print '* Obtain a request token ...'
+    print('* Obtain a request token ...')
     pause()
     
-    print 'REQUEST (via headers)'
-    print 'parameters: %s' % str(oauth_request.parameters)
+    print('REQUEST (via headers)')
+    print('parameters: %s' % str(oauth_request.parameters))
     pause()
     token = client.fetch_request_token(oauth_request)
-    print 'GOT'
-    print 'key: %s' % str(token.key)
-    print 'secret: %s' % str(token.secret)
+    print('GOT')
+    print('key: %s' % str(token.key))
+    print('secret: %s' % str(token.secret))
     pause()
 
-    print '* Authorize the request token ...'
+    print('* Authorize the request token ...')
     pause()
     
-    print 'REQUEST (via url query string)'
-    print 'parameters: %s' % str(oauth_request.parameters)
+    print('REQUEST (via url query string)')
+    print('parameters: %s' % str(oauth_request.parameters))
     pause()
     # this will actually occur only on some callback
     url = client.authorize_token(oauth_request, get_url_only=True)
-    print 'GOT'
-    print url
+    print('GOT')
+    print(url)
     pause()
 
     # get access token
-    print '* Obtain an access token ...'
+    print('* Obtain an access token ...')
     pause()
-    print 'REQUEST (via headers)'
-    print 'parameters: %s' % str(oauth_request.parameters)
+    print('REQUEST (via headers)')
+    print('parameters: %s' % str(oauth_request.parameters))
     pause()
     token = client.fetch_access_token(oauth_request)
-    print 'GOT'
-    print 'key: %s' % str(token.key)
-    print 'secret: %s' % str(token.secret)
+    print('GOT')
+    print('key: %s' % str(token.key))
+    print('secret: %s' % str(token.secret))
     pause()
 
     # access some protected resources
-    print '* Access protected resources ...'
+    print('* Access protected resources ...')
     pause()
     parameters = {'file': 'vacation.jpg', 'size': 'original', 'oauth_callback': CALLBACK_URL} # resource specific params
-    print 'REQUEST (via post body)'
-    print 'parameters: %s' % str(oauth_request.parameters)
+    print('REQUEST (via post body)')
+    print('parameters: %s' % str(oauth_request.parameters))
     pause()
     params = client.access_resource(oauth_request)
-    print 'GOT'
-    print 'non-oauth parameters: %s' % params
+    print('GOT')
+    print('non-oauth parameters: %s' % params)
     pause()
 
 def pause():
-    print ''
+    print('')
     time.sleep(1)
 
 if __name__ == '__main__':
     run_example()
-    print 'Done.'
+    print('Done.')
