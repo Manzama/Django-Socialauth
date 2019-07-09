@@ -13,12 +13,13 @@ from __future__ import absolute_import
 import hashlib
 import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
 import six.moves.http_client
-
+import settings
 import time
 
 from xml.dom.minidom import parseString
+from requests_oauthlib import OAuth1
+from requests_oauthlib import OAuth1Session
 
-import oauth.oauth as oauth
 
 class LinkedIn():
     LI_SERVER = "api.linkedin.com"
@@ -28,45 +29,49 @@ class LinkedIn():
     AUTHORIZE_URL = LI_API_URL + "/uas/oauth/authorize"
     ACCESS_TOKEN_URL = LI_API_URL + "/uas/oauth/accessToken"
 
-
-
     def __init__(self, api_key, secret_key):
         self.api_key = api_key
         self.secret_key = secret_key
 
         self.connection = six.moves.http_client.HTTPSConnection(self.LI_SERVER)
-        self.consumer = oauth.OAuthConsumer(api_key, secret_key)
-        self.sig_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
+        self.consumer = OAuth1Session(api_key, client_secret=secret_key)
+        self.sig_method = OAuth1.client_class.SIGNATURE_METHODS['HMAC-SHA1']
 
         self.status_api = StatusApi(self)
         self.connections_api = ConnectionsApi(self)
 
-    def getRequestToken(self, callback):
+    def getRequestToken(self):
         """
         Get a request token from linkedin
         """
-        oauth_consumer_key = self.api_key
+        # oauth_consumer_key = self.api_key
 
-        oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer,
-                        callback=callback,
-                        http_url = self.REQUEST_TOKEN_URL)
-        oauth_request.sign_request(self.sig_method, self.consumer, None)
+        token = self.consumer.fetch_request_token(self.REQUEST_TOKEN_URL)
+        # oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer,
+        #                                                            callback=callback,
+        #                                                            http_url=self.REQUEST_TOKEN_URL)
 
+        # OAuth1.client_class.sign()
+        # oauth_request.sign_request(self.sig_method, self.consumer, None)
 
-        self.connection.request(oauth_request.http_method,
-                        self.REQUEST_TOKEN_URL, headers = oauth_request.to_header())
-        response = self.connection.getresponse().read()
-        
-        token = oauth.OAuthToken.from_string(response)
+        # self.connection.request(oauth_request.http_method,
+        #                         self.REQUEST_TOKEN_URL, headers=oauth_request.to_header())
+        # response = self.connection.getresponse().read()
+
+        # token = oauth.OAuthToken.from_string(response)
         return token
 
-    def getAuthorizeUrl(self, token):
+    def getAuthorizeUrl(self):
         """
         Get the URL that we can redirect the user to for authorization of our
         application.
         """
-        oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url = self.AUTHORIZE_URL)
-        return oauth_request.to_url()
+        return self.consumer.authorization_url(self.AUTHORIZE_URL)
+
+
+        # oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token,
+        #                                                            http_url=self.AUTHORIZE_URL)
+        # return oauth_request.to_url()
 
     def getAccessToken(self, token, verifier):
         """
@@ -79,45 +84,55 @@ class LinkedIn():
                 token.key -> Key
                 token.secret -> Secret Key
         """
-        token.verifier = verifier
-        oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer, token=token, verifier=verifier, http_url=self.ACCESS_TOKEN_URL)
-        oauth_request.sign_request(self.sig_method, self.consumer, token)
-        
-        # self.connection.request(oauth_request.http_method, self.ACCESS_TOKEN_URL, headers=oauth_request.to_header()) 
-        self.connection.request(oauth_request.http_method, oauth_request.to_url()) 
-        response = self.connection.getresponse().read()
-        return oauth.OAuthToken.from_string(response)
+        redirect_response = raw_input('Paste the full redirect URL here:')
+        self.consumer.parse_authorization_response(redirect_response)
+
+        # token.verifier = verifier
+        # oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer, token=token,
+        #                                                            verifier=verifier,
+        #                                                            http_url=self.ACCESS_TOKEN_URL)
+        # oauth_request.sign_request(self.sig_method, self.consumer, token)
+
+        # self.connection.request(oauth_request.http_method, self.ACCESS_TOKEN_URL, headers=oauth_request.to_header())
+        # self.connection.request(oauth_request.http_method, oauth_request.to_url())
+        # response = self.connection.getresponse().read()
+        # return oauth.OAuthToken.from_string(response)
+        return self.consumer.fetch_access_token(self.ACCESS_TOKEN_URL)
 
     """
     More functionality coming soon...
     """
+
 
 class LinkedInApi():
     def __init__(self, linkedin):
         self.linkedin = linkedin
 
     def doApiRequest(self, url, access_token):
-        oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.linkedin.consumer, token=access_token, http_url=url)
+        oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.linkedin.consumer,
+                                                                   token=access_token, http_url=url)
         oauth_request.sign_request(self.linkedin.sig_method, self.linkedin.consumer, access_token)
-        self.linkedin.connection.request(oauth_request.http_method, url, headers=oauth_request.to_header())
+        self.linkedin.connection.request(oauth_request.http_method, url,
+                                         headers=oauth_request.to_header())
         return self.linkedin.connection.getresponse().read()
 
 
 class StatusApi(LinkedInApi):
     STATUS_SELF_URL = LinkedIn.LI_API_URL + "/v1/people/~:(current-status)"
-    
+
     def __init__(self, linkedin):
         LinkedInApi.__init__(self, linkedin)
-    
+
     def getMyStatus(self, access_token):
         return self.doApiRequest(self.STATUS_SELF_URL, access_token)
+
 
 class ProfileApi(LinkedInApi):
     """
     Get a LinkedIn Profile
     """
     PROFILE_SELF = LinkedIn.LI_API_URL + r"/v1/people/~:(id,first-name,last-name,headline,industry,picture-url,site-standard-profile-request)"
-    
+
     def __init__(self, linkedin):
         LinkedInApi.__init__(self, linkedin)
 
@@ -128,7 +143,7 @@ class ProfileApi(LinkedInApi):
 
         p = personDom[0]
 
-        fn=ln=picurl=headline=company=industry=profurl=""
+        fn = ln = picurl = headline = company = industry = profurl = ""
 
         try:
             id = p.getElementsByTagName('id')[0].firstChild.nodeValue
@@ -140,7 +155,7 @@ class ProfileApi(LinkedInApi):
             if ' at ' in headline:
                 company = headline.split(' at ')[1]
             industry = p.getElementsByTagName('industry')[0].firstChild.nodeValue
-            #location = p.getElementsByTagName('industry')[0].firstChild.nodeValue
+            # location = p.getElementsByTagName('industry')[0].firstChild.nodeValue
             profurl = p.getElementsByTagName('url')[0].firstChild.nodeValue
         except:
             pass
@@ -156,6 +171,7 @@ class ProfileApi(LinkedInApi):
         person.profile_url = profurl
 
         return person
+
 
 class ConnectionsApi(LinkedInApi):
     """
@@ -176,9 +192,10 @@ class ConnectionsApi(LinkedInApi):
     """
 
     CONNECTIONS_SELF = LinkedIn.LI_API_URL + "/v1/people/~/connections"
+
     def __init__(self, linkedin):
         LinkedInApi.__init__(self, linkedin)
-        
+
     def getMyConnections(self, access_token):
         xml = self.doApiRequest(self.CONNECTIONS_SELF, access_token)
         dom = parseString(xml)
@@ -193,7 +210,7 @@ class ConnectionsApi(LinkedInApi):
                 headline = p.getElementsByTagName('headline')[0].firstChild.nodeValue
                 company = headline.split(' at ')[1]
                 industry = p.getElementsByTagName('industry')[0].firstChild.nodeValue
-                #location = p.getElementsByTagName('industry')[0].firstChild.nodeValue
+                # location = p.getElementsByTagName('industry')[0].firstChild.nodeValue
                 person = Person()
                 person.firstname = fn
                 person.lastname = ln
@@ -204,6 +221,7 @@ class ConnectionsApi(LinkedInApi):
             except:
                 continue
         return people
+
 
 class Person():
     id = ""
@@ -218,6 +236,7 @@ class Person():
 
     def __str__(self):
         return "%s %s working at %s" % (self.firstname, self.lastname, self.company)
+
 
 class Location():
     name = ""
