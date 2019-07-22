@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 import logging
 import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
-from oauth import oauth
+from requests_oauthlib import OAuth1
+from requests_oauthlib import OAuth1Session
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -96,6 +97,7 @@ def twitter_login(request):
     signin_url = twitter.authorize_token_url(request_token)
     return HttpResponseRedirect(signin_url)
 
+
 def twitter_login_done(request):
     request_token = request.session.get('request_token', None)
     verifier = request.GET.get('oauth_verifier', None)
@@ -112,7 +114,9 @@ def twitter_login_done(request):
         # Redirect the user to the login page,
         return HttpResponseRedirect(reverse("socialauth_login_page"))
 
-    token = oauth.OAuthToken.from_string(request_token)
+    # token = oauth.OAuthToken.from_string(request_token)
+
+    token = self.consumer.fetch_request_token(self.REQUEST_TOKEN_URL)
 
     # If the token from session and token from twitter does not match
     # means something bad happened to tokens
