@@ -25,7 +25,6 @@ __version__ = '0.6-devel'
 import base64
 import calendar
 import os
-import rfc822
 try:
     import json as simplejson
 except:
@@ -43,6 +42,7 @@ try:
 except ImportError:
   from md5 import md5
 
+from email.utils import parsedate
 
 CHARACTER_LIMIT = 140
 
@@ -143,7 +143,7 @@ class Status(object):
     Returns:
       The time this status message was posted, in seconds since the epoch.
     '''
-    return calendar.timegm(rfc822.parsedate(self.created_at))
+    return calendar.timegm(parsedate(self.created_at))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this status message was "
@@ -1044,7 +1044,7 @@ class DirectMessage(object):
     Returns:
       The time this direct message was posted, in seconds since the epoch.
     '''
-    return calendar.timegm(rfc822.parsedate(self.created_at))
+    return calendar.timegm(parsedate(self.created_at))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this direct message was "
